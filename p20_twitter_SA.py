@@ -1,0 +1,40 @@
+from tweepy import Stream
+from tweepy import OAuthHandler
+from tweepy.streaming import StreamListener
+import json
+import time
+
+import sentiment_mod as s
+
+#consumer key, consumer secret, access token, access secret.
+ckey="DCEo4g1B2xR3MxmOG07FuE9DE"
+csecret="f4GzzbnWIG8V08eNyi5RRVQNlyf5XLpoqFyDfkANf4KBWRnjJU"
+atoken="1569580854-raNf43YGRD9l5EDIZmCPvl9Wpb1byW7dNvJGLKz"
+asecret="O9y7XLxc01wAFnKnqEtURkZQg9HNRpkZeUITar3paPSl8"
+
+class listener(StreamListener):
+
+    def on_data(self, data):
+        all_data = json.loads(data)
+        
+        tweet = all_data["text"]
+        sentiment_value, confidence = s.sentiment(tweet)
+	print (tweet)
+	print "Sentiment: %s, Confidence %f" % ( sentiment_value, confidence )
+
+	if confidence*100 >= 80:
+		output = open("twitter-out.txt", "a")
+		output.write(sentiment_value)
+		output.write('\n')
+		output.close()
+
+        return True
+
+    def on_error(self, status):
+        print (status)
+
+auth = OAuthHandler(ckey, csecret)
+auth.set_access_token(atoken, asecret)
+
+twitterStream = Stream(auth, listener())
+twitterStream.filter(track=["modi"])
